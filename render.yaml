@@ -3,8 +3,8 @@ services:
     name: whatsapp-service
     env: node
     buildCommand: |
-      apt-get update
-      apt-get install -y chromium
+      apt-get update && \
+      apt-get install -y chromium && \
       npm install
     startCommand: node index.js
     envVars:
