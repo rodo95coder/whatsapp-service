@@ -29,7 +29,8 @@ async function initSession(empresaId) {
     },
     headless: true,
     logQR: false,
-    useChrome: true,
+    useChrome: false,
+    browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
   sesiones[empresaId] = client;
