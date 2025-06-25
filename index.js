@@ -29,3 +29,12 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
 
+const fs = require('fs');
+
+if (fs.existsSync('/usr/bin/chromium')) {
+  console.log('✅ Chromium está en /usr/bin/chromium');
+} else if (fs.existsSync('/usr/bin/chromium-browser')) {
+  console.log('✅ Chromium-browser está en /usr/bin/chromium-browser');
+} else {
+  console.error('❌ Chromium no está instalado en /usr/bin');
+}
