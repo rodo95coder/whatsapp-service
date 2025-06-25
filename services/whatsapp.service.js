@@ -31,6 +31,7 @@ async function initSession(empresaId) {
     logQR: false,
     useChrome: false,
     browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
+    executablePath: '/usr/bin/chromium-browser', // Forzar Chromium en Render
   });
 
   sesiones[empresaId] = client;
