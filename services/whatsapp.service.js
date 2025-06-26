@@ -2,7 +2,6 @@ const wppconnect = require("@wppconnect-team/wppconnect");
 const fs = require("fs-extra");
 const path = require("path");
 const qrBase64PorEmpresa = {};
-
 const sesiones = {};
 
 async function initSession(empresaId) {
@@ -62,15 +61,17 @@ async function initSession(empresaId) {
   return { success: true, msg: "Sesión iniciada", empresaId };
 }
 
-
-async function sendMessage({ empresaId, numero, mensaje, archivo, nombreArchivo }) {
+async function sendMessage({ empresaId, numeros, mensaje, archivo, nombreArchivo }) {
   const client = sesiones[empresaId];
   if (!client) return { success: false, msg: 'Sesión no iniciada' };
 
-  if (!numero || (!mensaje && !archivo)) {
-    return { success: false, msg: 'Parámetros incompletos' };
+  if (!Array.isArray(numeros) || numeros.length === 0 || (!mensaje && !archivo)) {
+    return { success: false, msg: 'Parámetros incompletos: faltan números o mensaje' };
   }
 
+  let tempPath = null;
+
+  // Procesar archivo base64 si existe
   if (archivo && nombreArchivo) {
     try {
       const buffer = Buffer.from(archivo, 'base64');
@@ -80,41 +81,53 @@ async function sendMessage({ empresaId, numero, mensaje, archivo, nombreArchivo 
       }
 
       const safeName = path.basename(nombreArchivo);
-      const tempPath = path.join(tempDir, `${Date.now()}_${safeName}`);
+      tempPath = path.join(tempDir, `${Date.now()}_${safeName}`);
       fs.writeFileSync(tempPath, buffer);
 
-      // Verificar si el archivo realmente tiene contenido
       const stats = fs.statSync(tempPath);
       if (stats.size === 0) {
         console.warn(`El archivo base64 está vacío en disco. Se enviará solo texto.`);
-        await client.sendText(numero, mensaje || '[Archivo vacío no enviado]');
-        fs.unlinkSync(tempPath);
-        return { success: true, msg: 'Mensaje enviado sin archivo (archivo vacío).' };
+        tempPath = null;
       }
-
-      await client.sendFile(numero, tempPath, safeName, mensaje || '');
-      fs.unlinkSync(tempPath);
-      return { success: true, msg: 'Mensaje con archivo enviado' };
-
     } catch (error) {
-      console.error(`Error al procesar archivo base64:`, error.message);
-      try {
-        await client.sendText(numero, mensaje || '[Error al enviar archivo]');
-      } catch {}
-      return { success: false, msg: 'Error al enviar archivo', error: error.message };
+      console.error(`Error procesando archivo base64: ${error.message}`);
+      tempPath = null;
     }
   }
 
-  // Solo mensaje sin archivo
-  try {
-    await client.sendText(numero, mensaje || '');
-    return { success: true, msg: 'Mensaje de texto enviado' };
-  } catch (error) {
-    console.error(`Error al enviar mensaje de texto:`, error.message);
-    return { success: false, msg: 'Error al enviar texto', error: error.message };
-  }
-}
+  // Envío en paralelo a todos los números
+  const resultados = await Promise.all(numeros.map(async (numero) => {
+    try {
+      if (tempPath) {
+        await client.sendFile(numero, tempPath, nombreArchivo, mensaje || '');
+        return { numero, success: true, msg: 'Archivo enviado' };
+      } else {
+        await client.sendText(numero, mensaje || '[Mensaje sin archivo]');
+        return { numero, success: true, msg: 'Mensaje de texto enviado' };
+      }
+    } catch (error) {
+      console.error(`Error al enviar a ${numero}: ${error.message}`);
+      return { numero, success: false, error: error.message };
+    }
+  }));
 
+  // Limpiar archivo temporal
+  if (tempPath && fs.existsSync(tempPath)) {
+    fs.unlinkSync(tempPath);
+  }
+
+  const exitosos = resultados.filter(r => r.success).length;
+  const fallidos = resultados.filter(r => !r.success);
+
+  return {
+    success: true,
+    msg: `Enviados ${exitosos} de ${numeros.length}`,
+    enviados: exitosos,
+    fallidos: fallidos.length,
+    detalleFallos: fallidos,
+    resultados
+  };
+}
 
 async function estadoSesion(empresaId) {
   const client = sesiones[empresaId];
