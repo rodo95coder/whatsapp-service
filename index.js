@@ -16,6 +16,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.set('view engine', 'ejs'); // indica a Express que se usará EJS
+app.set('views', path.join(__dirname, 'views')); // define la carpeta 'views'
+
+
 // Prefijo de API
 app.use('/api/whatsapp', whatsappRoutes);
 // Ruta para ver el QR
