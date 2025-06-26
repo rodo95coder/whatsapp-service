@@ -1,0 +1,17 @@
+<!-- views/qr.ejs -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Código QR</title>
+</head>
+<body>
+  <h2>Escanea este código QR:</h2>
+
+  <% if (qr && qr.startsWith('data:image')) { %>
+    <img src="<%= qr %>" alt="Código QR de WhatsApp" />
+  <% } else { %>
+    <p>QR no disponible aún.</p>
+  <% } %>
+</body>
+</html>
