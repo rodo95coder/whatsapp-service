@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const { qrBase64PorEmpresa } = require('./services/whatsapp.service');
 dotenv.config();
+global.qrBase64PorEmpresa = {};
 
 const whatsappRoutes = require('./routes/whatsapp.routes');
 
