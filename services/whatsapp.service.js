@@ -33,7 +33,7 @@ async function initSession(empresaId) {
     autoClose: false,
     catchQR: (base64Qr, asciiQR, attempts, urlCode) => {
       console.log(`QR para empresa ${empresaId}:\n${asciiQR}`);
-      global.qrBase64PorEmpresa[empresaId] = base64Qr;
+      qrBase64PorEmpresa[empresaId] = base64Qr;
     },
     statusFind: (statusSession, session) => {
       if (

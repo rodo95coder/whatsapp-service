@@ -6,6 +6,7 @@ dotenv.config();
 // Rutas del sistema
 const whatsappRoutes = require('./routes/whatsapp.routes');
 
+
 // Inicialización de la app
 const app = express();
 

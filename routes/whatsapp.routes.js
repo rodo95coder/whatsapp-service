@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const { qrBase64PorEmpresa } = require('../services/whatsapp.service');
 const controller = require('../controllers/whatsapp.controller');
 const verificarToken = require('../middleware/auth');
 
