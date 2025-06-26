@@ -11,6 +11,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/whatsapp', whatsappRoutes);
+app.set('view engine', 'ejs');
+app.get('/qr-view', (req, res) => {
+  const empresaId = req.query.empresaId;
+  const qr = qrBase64PorEmpresa[empresaId];
+
+  if (!qr) {
+    return res.send('QR no disponible aún.');
+  }
+
+  res.render('qr', { qr });
+});
 
 const PORT = process.env.PORT || 3000;
 app.get('/', (req, res) => {

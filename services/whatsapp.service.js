@@ -31,12 +31,23 @@ async function initSession(empresaId) {
     logQR: false,
     useChrome: false,
     browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
-    executablePath: '/usr/bin/chromium-browser' // Forzar Chromium en Render
+    executablePath: '/usr/bin/chromium-browser', // Forzar Chromium en Render
+
+    // Esta es la clave para persistencia:
+    folderNameToken: './tokens', // <-- Aquí se guarda la sesión
+    mkdirFolderToken: true,       // Crea la carpeta si no existe
+    waitForLogin: true,           // Espera hasta que el usuario inicie sesión
   });
 
   sesiones[empresaId] = client;
   return { success: true, msg: "Sesión iniciada", empresaId };
 }
+
+const tokenPath = path.join(__dirname, '../tokens', empresaId);
+if (fs.existsSync(tokenPath)) {
+  console.log(`Token existente detectado para ${empresaId}`);
+}
+
 
 async function sendMessage({ empresaId, numero, mensaje, archivo, nombreArchivo }) {
   const client = sesiones[empresaId];
