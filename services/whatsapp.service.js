@@ -7,7 +7,8 @@ const sesiones = {};
 
 async function initSession(empresaId) {
   const sessionPath = path.join(__dirname, '../tokens', empresaId);
-  
+
+  // Limpieza si existe una sesión corrupta o bloqueada
   if (fs.existsSync(sessionPath)) {
     try {
       await fs.remove(sessionPath);
@@ -17,13 +18,16 @@ async function initSession(empresaId) {
     }
   }
 
+  // Validar si ya hay una sesión activa
   if (sesiones[empresaId]) {
     const estado = await sesiones[empresaId].isConnected();
     if (estado) {
+      console.log(`Sesión ya activa para ${empresaId}`);
       return { success: true, msg: "Sesión ya activa" };
     }
   }
 
+  // Crear nueva sesión
   const client = await wppconnect.create({
     session: empresaId,
     autoClose: false,
@@ -43,21 +47,16 @@ async function initSession(empresaId) {
     logQR: false,
     useChrome: false,
     browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
-    executablePath: '/usr/bin/chromium-browser', // Forzar Chromium en Render
-
-    // Esta es la clave para persistencia:
-    folderNameToken: './tokens', // <-- Aquí se guarda la sesión
-    mkdirFolderToken: true,       // Crea la carpeta si no existe
-    waitForLogin: true,           // Espera hasta que el usuario inicie sesión
+    executablePath: '/usr/bin/chromium-browser',
+    folderNameToken: './tokens',
+    mkdirFolderToken: true,
+    waitForLogin: true,
   });
 
   sesiones[empresaId] = client;
-  return { success: true, msg: "Sesión iniciada", empresaId };
-}
 
-const tokenPath = path.join(__dirname, '../tokens', empresaId);
-if (fs.existsSync(tokenPath)) {
-  console.log(`Token existente detectado para ${empresaId}`);
+  console.log(`Sesión iniciada para ${empresaId}`);
+  return { success: true, msg: "Sesión iniciada", empresaId };
 }
 
 
