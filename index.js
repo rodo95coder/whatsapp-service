@@ -1,11 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 dotenv.config();
 
 // Rutas del sistema
 const whatsappRoutes = require('./routes/whatsapp.routes');
-
+const { qrBase64PorEmpresa } = require('./services/whatsapp.service');
 
 // Inicialización de la app
 const app = express();
@@ -17,10 +18,21 @@ app.use(express.urlencoded({ extended: true }));
 
 // Prefijo de API
 app.use('/api/whatsapp', whatsappRoutes);
+// Ruta para ver el QR
+app.get('/qr-view', (req, res) => {
+  const empresaId = req.query.empresaId;
+  const qr = qrBase64PorEmpresa[empresaId];
 
-// Endpoint de prueba para ver si está vivo
+  if (!qr) {
+    return res.send('QR no disponible aún.');
+  }
+
+  res.render('qr', { qr }); // usa views/qr.ejs
+});
+
+// Endpoint de prueba
 app.get('/', (req, res) => {
-  res.send('Backend WhatsApp activo y corriendo correctamente.');
+  res.send('Backend WhatsApp activo.');
 });
 
 // Puerto dinámico para Render
