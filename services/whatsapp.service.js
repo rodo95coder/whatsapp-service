@@ -1,11 +1,22 @@
 const wppconnect = require("@wppconnect-team/wppconnect");
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
 const qrBase64PorEmpresa = {};
 
 const sesiones = {};
 
 async function initSession(empresaId) {
+  const sessionPath = path.join(__dirname, '../tokens', empresaId);
+  
+  if (fs.existsSync(sessionPath)) {
+    try {
+      await fs.remove(sessionPath);
+      console.log(`Carpeta de sesión eliminada: ${sessionPath}`);
+    } catch (err) {
+      console.error(`Error al eliminar la carpeta de sesión: ${err.message}`);
+    }
+  }
+
   if (sesiones[empresaId]) {
     const estado = await sesiones[empresaId].isConnected();
     if (estado) {
@@ -15,6 +26,7 @@ async function initSession(empresaId) {
 
   const client = await wppconnect.create({
     session: empresaId,
+    autoClose: false,
     catchQR: (base64Qr, asciiQR, attempts, urlCode) => {
       console.log(`QR para empresa ${empresaId}:\n${asciiQR}`);
       qrBase64PorEmpresa[empresaId] = base64Qr;
