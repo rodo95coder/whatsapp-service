@@ -51,6 +51,9 @@ async function initSession(empresaId) {
     folderNameToken: './tokens',
     mkdirFolderToken: true,
     waitForLogin: true,
+    puppeteerOptions: { //Este timeout es por que el host gratuito maneja una ram limitada.
+  protocolTimeout: 60000, // 60 segundos
+}
   });
 
   sesiones[empresaId] = client;
